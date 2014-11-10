@@ -3,13 +3,17 @@ from DsReader.dsReader import DataSetParser
 import os
 
 if __name__ == "__main__":
-	input_directory         = "/Users/elvin/Desktop/Project/Input"
-	input_name 				= "wocao1.txt"
+	input_directory         = "/Users/elvin/Desktop/Project_iofiles/Input"
+	input_name 				= "wocao.txt"
 	input_file 				= os.path.join(input_directory, input_name)
 
-	output_directory        = "/Users/elvin/Desktop/Project/Output"
+	output_directory        = "/Users/elvin/Desktop/Project_iofiles/Output"
 	output_name 			= 'filtered_output_of_' + input_name[:-4]+'.csv'
 	output_file 			= os.path.join(output_directory, output_name)
+
+
+	pr_output_name 			= 'pagerank_of_' + input_name[:-4]+'.csv'
+	pr_output_file 			= os.path.join(output_directory, pr_output_name)
 
 
 	print "Input data file name is :", input_name
@@ -26,8 +30,9 @@ if __name__ == "__main__":
 	print "Writing output file to :", output_name
 	dsParser.writeCsv(attlist, output_file)
 
-	#pr = PageRankComputer(output_file)
-	#ranks = pr.compute_ranks()
+	pr = PageRankComputer(output_file)
+	ranks = pr.compute_ranks()
+	pr.writeCsv(pr_output_file)
 
 
     

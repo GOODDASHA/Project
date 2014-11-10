@@ -34,3 +34,9 @@ class PageRankComputer():
     		self._ranks = newranks
     	return self._ranks
    
+    def writeCsv(self, output_filename):
+        with open(output_filename, 'wb') as csvfile:
+            writer = csv.writer(csvfile, delimiter=',')
+            writer.writerow(['dokid', 'rank'])
+            for paper, rank in self._ranks.items():
+                writer.writerow([paper, rank]) 
