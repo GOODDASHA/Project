@@ -15,6 +15,9 @@ if __name__ == "__main__":
 	pr_output_name 			= 'pagerank_of_' + input_name[:-4]+'.csv'
 	pr_output_file 			= os.path.join(output_directory, pr_output_name)
 
+	ss_output_name 			= 'subject_output_of_' + input_name[:-4]+'.txt'
+	ss_output_file 			= os.path.join(output_directory, ss_output_name)
+
 
 	print "Input data file name is :", input_name
 	print "Reading HTML file to string"
@@ -24,11 +27,14 @@ if __name__ == "__main__":
 	print "Data set parsed, filtering tags"
 	ds                      = dsParser.filtertags()
 
+
 	attlist                 = ['dokid', 'editions', 'sortdate', 'asca', 'doctype',
                                 'issn', 'authors', 'jabbrev', 'publisher', 'refunifids']
 	
 	print "Writing output file to :", output_name
 	dsParser.writeCsv(attlist, output_file)
+	print "Writing out all the subject"
+	dsParser.writesubject(ss_output_file)
 
 	pr = PageRankComputer(output_file)
 	ranks = pr.compute_ranks()

@@ -14,6 +14,7 @@ class MyHTMLParser(HTMLParser):
         self.currenttag = None
         self.editionset = Set()
         self.doctypeset = Set()
+        self.ascaset = Set()
     def handle_starttag(self, tag, attrs):
         if tag == 'REC':
             print self.size
@@ -30,7 +31,10 @@ class MyHTMLParser(HTMLParser):
             if '|' in data:
                 for x in data.split('|'):
                     self.doctypeset.add(x)
-
+        elif self.currenttag == 'asca':
+            if '|' in data:
+                for x in data.split('|'):
+                    self.ascaset.add(x)       
         elif self.currenttag == 'editions':
             if '|' in data:
                 for x in data.split('|'):
@@ -45,6 +49,8 @@ class MyHTMLParser(HTMLParser):
 
     def getsize(self):
         return self.size
+    def getsubject(self):
+        return self.ascaset
     def gettags(self):
         return self.taglset
     def getdataset(self):

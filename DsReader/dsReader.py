@@ -14,8 +14,15 @@ class DataSetParser():
         return self.dataset
 
     def gettags(self):
-
         return self.parser.gettags()
+    def writesubject(self, filename):
+        ss =  [x.strip() for x in self.parser.getsubject()]
+        ss.sort()
+        with open(filename, "w") as text_file:
+            for x in ss:
+                text_file.write(x + '\n')
+
+            text_file.close()
 
     def filtertags(self, tagname = 'refunifids'):
         self.filtered_dataset = [data for data in self.dataset if tagname in data]
