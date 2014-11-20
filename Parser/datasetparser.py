@@ -1,6 +1,6 @@
-from HtmlReader.htmlparser import MyHTMLParser
+from htmlparser import MyHTMLParser
 import csv
-class DataSetParser():
+class DataSetParser(MyHTMLParser):
     def __init__(self, filename):
         self.parser = MyHTMLParser()
 
@@ -15,11 +15,29 @@ class DataSetParser():
 
     def gettags(self):
         return self.parser.gettags()
+
+    def classifydata(self, filename):
+        self.buildsubjectset()
+
+        with open(filename, "w") as f:
+            writer = csv.writer(f, delimiter=',')
+            writer.writerow(['subject', 'dokid'])
+            for subject in self.subjectset:
+                for data in self.filtered_dataset:
+                    temp = [x.strip() for x in data['asca']]
+                    if subject in temp:
+                        writer.writerow([subject, data['dokid'][0]])
+
+
+    def buildsubjectset(self):
+        self.subjectset = [x.strip() for x in self.parser.getsubject()]
+        self.subjectset.sort()
+
+
     def writesubject(self, filename):
-        ss =  [x.strip() for x in self.parser.getsubject()]
-        ss.sort()
+        self.buildsubjectset()
         with open(filename, "w") as text_file:
-            for x in ss:
+            for x in self.subjectset:
                 text_file.write(x + '\n')
 
             text_file.close()

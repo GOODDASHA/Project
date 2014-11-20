@@ -1,5 +1,5 @@
 import csv
-class PageRankComputer():
+class PageRankHandler():
 
     def __init__(self, filename, id_tag='dokid', ref_tag='refunifids'):
         self._paperset = {eval(data[id_tag])[0]:eval(data[ref_tag])
