@@ -9,6 +9,6 @@ Current tasks:
 2. Improve PageRank
 
 3. DFS the graph into several cluster
-	a. waiting for large dataset testing
-	b. clustering 
+	a. waiting for large dataset testing —> Currently Postive
+	b. clustering 			     -> Done
 	

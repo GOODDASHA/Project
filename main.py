@@ -5,32 +5,9 @@ import os
 import csv
 
 
-
-def main():
-	input_name 				= "wocao.txt"
-
-	output_directory        = "/Users/elvin/Desktop/Project_iofiles/Output"
-	output_name 			= 'filtered_output_of_' + input_name[:-4]+'.csv'
-	output_file 			= os.path.join(output_directory, output_name)
-
-
-	dfshandler = DFSHandler(output_file)
-	dfshandler.execute()
-	dfshandler.get_cluster()
-	dfshandler.check()
-
-
-
-
-
-
-def main2():
-	input_directory         = "/Users/elvin/Desktop/Project_iofiles/Input"
+def main_parser_test():
 	input_name 				= "wocao.txt"
 	input_file 				= os.path.join(input_directory, input_name)
-
-	
-
 
 	print "Input data file name is :", input_name
 	print "Reading HTML file to string"
@@ -44,7 +21,6 @@ def main2():
 	attlist                 = ['dokid', 'editions', 'sortdate', 'asca', 'doctype',
                                 'issn', 'authors', 'jabbrev', 'publisher', 'refunifids']
 	
-	output_directory        = "/Users/elvin/Desktop/Project_iofiles/Output"
 	output_name 			= 'filtered_output_of_' + input_name[:-4]+'.csv'
 	output_file 			= os.path.join(output_directory, output_name)
 	print "Writing output file to :", output_name
@@ -64,13 +40,49 @@ def main2():
 	print "Writing out all the subject"
 	dsParser.writesubject(ss_output_file)
 
+	
+def main_pagerank_test():
+	pr_input_name 			= 'filtered_output_of_' + input_name[:-4]+'.csv'
+	pr_input_file 			= os.path.join(output_directory, pr_input_name)
+
 	pr_output_name 			= 'pagerank_of_' + input_name[:-4]+'.csv'
 	pr_output_file 			= os.path.join(output_directory, pr_output_name)
 
-	pr = PageRankHandler(output_file)
+	pr = PageRankHandler(pr_input_file)
 	ranks = pr.compute_ranks()
 	pr.writeCsv(pr_output_file)
 
+def main_dfs_test():
+
+	dfs_input_name 			= 'filtered_output_of_all.csv'
+	dfs_input_file 			= os.path.join(input_directory, dfs_input_name)	
+	num_of_paper_read = 10000
+	dfshandler = DFSHandler(dfs_input_file, num = num_of_paper_read)
+	dfshandler.execute()
+	cluster, visited, ps = dfshandler.get_cluster()
+
+	l = len(cluster)
+	dict = {}
+	num_paper = 0
+	largest_size = 0
+	for key in cluster:
+		num_paper += len(cluster[key])
+		largest_size = max(len(cluster[key]), largest_size)
+		for k in cluster[key]:
+			if k in dict:
+				print "BUG" ###verify no intersection between clusters
+			else:
+				dict[k] = 1
+
+	print "total number of data read is :", num_of_paper_read
+	print "number of unconnected cluster is :", l
+	print "total number of paper involved( can be paper outside the data set ) is :", num_paper
+	print "largest cluster size :", largest_size
+
 if __name__ == "__main__":
-	main2()
+	input_name 				= "wocao.txt"
+	input_directory         = "/Users/elvin/Desktop/Project_iofiles/Input"
+	output_directory        = "/Users/elvin/Desktop/Project_iofiles/Output"
+
+	main_dfs_test()
     
