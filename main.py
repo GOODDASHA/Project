@@ -3,6 +3,7 @@ from Algorithms.DFS import DFSHandler
 from Parser.datasetparser import DataSetParser
 import os
 import csv
+import sys
 
 
 def main_parser_test():
@@ -56,28 +57,29 @@ def main_dfs_test():
 
 	dfs_input_name 			= 'filtered_output_of_all.csv'
 	dfs_input_file 			= os.path.join(input_directory, dfs_input_name)	
-	num_of_paper_read = 10000
+	num_of_paper_read = 1000
+	
 	dfshandler = DFSHandler(dfs_input_file, num = num_of_paper_read)
-	dfshandler.execute()
-	cluster, visited, ps = dfshandler.get_cluster()
+	components = dfshandler.get_components()
 
-	l = len(cluster)
-	dict = {}
+	l = len(components)
 	num_paper = 0
 	largest_size = 0
-	for key in cluster:
-		num_paper += len(cluster[key])
-		largest_size = max(len(cluster[key]), largest_size)
-		for k in cluster[key]:
-			if k in dict:
-				print "BUG" ###verify no intersection between clusters
-			else:
-				dict[k] = 1
+
+	for sub in components:
+		num_paper += len(sub)
+		largest_size = max(len(sub), largest_size)
 
 	print "total number of data read is :", num_of_paper_read
 	print "number of unconnected cluster is :", l
 	print "total number of paper involved( can be paper outside the data set ) is :", num_paper
 	print "largest cluster size :", largest_size
+	dfs_output_name 			= 'components.p'
+	dfs_output_file 			= os.path.join(input_directory, dfs_output_name)	
+	dfshandler.write_to_file(dfs_output_file)
+
+	c = dfshandler.load_from_file(dfs_output_file)
+
 
 if __name__ == "__main__":
 	input_name 				= "wocao.txt"
