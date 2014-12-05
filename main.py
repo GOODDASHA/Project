@@ -85,14 +85,22 @@ def main_dfs_test():
 
 
 def test():
+
 	raw_data_filename = 'filtered_output_of_all.csv'
 	dfshandler = DFSHandler(raw_data_filename)
 	dfshandler.build_paper_graph()
 	dfshandler.write_paper_components()
 
+def test2():
+
+	prhandler = PageRankHandler()
+	prhandler.build_journal_graph()
+	prhandler.compute_journal_pageranks()
+	prhandler.write_journal_pageranks()
+
 
 if __name__ == "__main__":
 	
 
-	test()
+	test2()
     

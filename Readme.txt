@@ -18,4 +18,4 @@ Current tasks:
 
 6. Trust rank
 
-7. consider graph weight to split the graph more evenly 
+7. consider graph weight to split the graph more evenly
