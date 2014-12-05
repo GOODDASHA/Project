@@ -65,8 +65,8 @@ class PageRankHandler():
                 for _other_id in _ref_journal:
                     if _other_id not in self._journal_undirected_graph[_id_journal]:
                         self._journal_undirected_graph.add_edge(_id_journal, _other_id)
-        print 'num of edges : 'self._journal_undirected_graph.number_of_edges()
-        print 'num of nodes : 'len(self._journal_undirected_graph)
+        print 'num of edges : ', self._journal_undirected_graph.number_of_edges()
+        print 'num of nodes : ', len(self._journal_undirected_graph)
 
     def compute_journal_pageranks(self):
         print 'computing page rank'
