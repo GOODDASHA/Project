@@ -55,9 +55,12 @@ def main_pagerank_test():
 
 def main_dfs_test():
 
-	dfs_input_name 			= 'filtered_output_of_all.csv'
-	dfs_input_file 			= os.path.join(input_directory, dfs_input_name)	
-	num_of_paper_read = 1000
+	dfs_input_name 			= 'pruned_filtered_output_of_all.csv'
+	dfs_input_file 			= os.path.join(input_directory, dfs_input_name)
+	sys.argv
+	arg = sys.argv[1]
+	num_of_paper_read = None if arg == 'all' else int(arg)
+	#num_of_paper_read = None
 	
 	dfshandler = DFSHandler(dfs_input_file, num = num_of_paper_read)
 	components = dfshandler.get_components()
@@ -81,10 +84,15 @@ def main_dfs_test():
 	c = dfshandler.load_from_file(dfs_output_file)
 
 
-if __name__ == "__main__":
-	input_name 				= "wocao.txt"
-	input_directory         = "/Users/elvin/Desktop/Project_iofiles/Input"
-	output_directory        = "/Users/elvin/Desktop/Project_iofiles/Output"
+def test():
+	raw_data_filename = 'filtered_output_of_all.csv'
+	dfshandler = DFSHandler(raw_data_filename)
+	dfshandler.build_paper_graph()
+	dfshandler.write_paper_components()
 
-	main_dfs_test()
+
+if __name__ == "__main__":
+	
+
+	test()
     
