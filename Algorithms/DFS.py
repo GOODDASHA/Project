@@ -4,16 +4,19 @@ import matplotlib.pyplot as plt
 import pickle
 import os
 
+
 class DFSHandler():
     def __init__(self, filename, 
                 id_tag='dokid', 
                 ref_tag='refunifids', 
                 journal_tag = 'jabbrev',
+                date_tag = 'sortdate',
                 num=None,
                 rawdata_filename = 'filtered_output_of_all.csv',
                 idset_filename = 'id.txt',
                 header_filename = 'header.txt',
                 id_jounal_filename = 'id_journal.txt',
+                data_splited_filename = '_date_splited_data.csv',
                 journal_relation_filename = '_jounal_relation.txt',
                 directory = '/Users/elvin/Desktop/Project_iofiles'):
 
@@ -22,10 +25,13 @@ class DFSHandler():
         '''
         # Attributes of the data file
         self._filename = filename
+        self._maxmum = num
+
+        # tags
         self._id_tag = id_tag
         self._ref_tag = ref_tag
         self._journal_tag = journal_tag
-        self._maxmum = num
+        self._date_tag = date_tag
 
         # unconnected components
         self._paper_components = None
@@ -44,15 +50,16 @@ class DFSHandler():
         self._id_jounal_filename = id_jounal_filename
         self._pruned_filename = 'pruned_' + self._rawdata_filename[:-4] + '.txt'
         self._journal_relation_filename = journal_relation_filename
+        self._data_splited_filename = data_splited_filename
 
         # input & intermediate & output file directory
         self._directory = directory
         self._input_directory = self._directory + '/Input'
         self._output_directory = self._directory + '/Output'
-        self._other_directory = self._directory + '/Other'
+        self._other_directory = self._directory + '/Intermediate'
         self._journal_components_directory = self._output_directory+'/Components/Journal_components'
         self._paper_components_directory = self._output_directory+'/Components/Paper_components'
-        self._subject_components_directory = self._output_directory+'/Components/Subject_components'
+        self._data_splited_directory = self._output_directory+'/Date_splited_data'
 
         # input & intermediate & output file 
         self._idset_file = os.path.join(self._other_directory, self._idset_filename)
@@ -61,6 +68,42 @@ class DFSHandler():
         self._pruned_file = os.path.join(self._other_directory, self._pruned_filename)
         self._id_jounal_file = os.path.join(self._other_directory, self._id_jounal_filename)
         self._journal_relation_file = os.path.join(self._other_directory, self._journal_relation_filename)
+
+        self._header = [h.strip() for h in open(self._header_file, 'rb')]
+        print self._header
+    def split_by_date(self):
+        '''
+        split the data w.r.t. dates and write to separate files every two years 
+        '''
+
+        _splited_data = {i:[] for i in range(2008,2014)}
+        with open(self._rawinput_file, 'rb') as input_csvfile:
+                _dr = csv.DictReader(input_csvfile)
+                n = 0
+                for data in _dr:
+                    n += 1
+                    if not n%100000:
+                        print n
+                    _year = int(eval(data[self._date_tag])[0][:4])
+
+                    _splited_data[_year].append(data)
+        print "writing" 
+        N = 0
+        for i in _splited_data:
+            _data_splited_filename = str(i) + self._data_splited_filename
+            _data_splited_file = os.path.join(self._data_splited_directory, 
+                                                   _data_splited_filename)
+            with open(_data_splited_file, 'wb') as output_csvfile:
+                writer = csv.writer(output_csvfile, delimiter=',')
+                writer.writerow(self._header)
+                for _data in _splited_data[i]:
+                    N+=1
+                    if not N%100000:
+                        print N
+                    _line = [_data[f] for f in self._header]
+                    writer.writerow(_line)
+
+
 
     def write_paper_id(self):
         '''
@@ -188,8 +231,11 @@ class DFSHandler():
                 data = data.strip().split('\t')
                 _id = data[0]
                 _adjset = data[1].split('|')
+                if _id not in self._paper_undirected_graph:
+                    self._paper_undirected_graph.add_node(_id)
                 for _other_id in _adjset:
-                    self._paper_undirected_graph.add_edge(_id, _other_id)
+                    if _other_id not in self._paper_undirected_graph[_id]:
+                        self._paper_undirected_graph.add_edge(_id, _other_id)
         self._paper_components = sorted(nx.connected_components(self._paper_undirected_graph), key = len, reverse=True)
     
     def write_paper_components(self):

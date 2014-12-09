@@ -1,4 +1,4 @@
-from Algorithms.PageRank import PageRankHandler
+from Algorithms.RankBox import PageRankHandler, TrustRankHandler
 from Algorithms.DFS import DFSHandler
 from Parser.datasetparser import DataSetParser
 import os
@@ -6,101 +6,183 @@ import csv
 import sys
 
 
-def main_parser_test():
-	input_name 				= "wocao.txt"
-	input_file 				= os.path.join(input_directory, input_name)
-
-	print "Input data file name is :", input_name
-	print "Reading HTML file to string"
-	dsParser                = DataSetParser(input_file)
-	print "String has been read, parsing HTML to data set"
-	dsParser.parse_HTML()
-	print "Data set parsed, filtering tags"
-	ds                      = dsParser.filtertags()
-
-
-	attlist                 = ['dokid', 'editions', 'sortdate', 'asca', 'doctype',
-                                'issn', 'authors', 'jabbrev', 'publisher', 'refunifids']
-	
-	output_name 			= 'filtered_output_of_' + input_name[:-4]+'.csv'
-	output_file 			= os.path.join(output_directory, output_name)
-	print "Writing output file to :", output_name
-
-	dsParser.writeCsv(attlist, output_file)
-
-	print "****************************"
-
-	classification_output_name 	= 'classification_output_of_' + input_name[:-4]+'.csv'
-	classification_output_file 	= os.path.join(output_directory, classification_output_name)
-	dsParser.classifydata(classification_output_file)
-
-
-
-	ss_output_name 			= 'subject_output_of_' + input_name[:-4]+'.txt'
-	ss_output_file 			= os.path.join(output_directory, ss_output_name)
-	print "Writing out all the subject"
-	dsParser.writesubject(ss_output_file)
-
-	
-def main_pagerank_test():
-	pr_input_name 			= 'filtered_output_of_' + input_name[:-4]+'.csv'
-	pr_input_file 			= os.path.join(output_directory, pr_input_name)
-
-	pr_output_name 			= 'pagerank_of_' + input_name[:-4]+'.csv'
-	pr_output_file 			= os.path.join(output_directory, pr_output_name)
-
-	pr = PageRankHandler(pr_input_file)
-	ranks = pr.compute_ranks()
-	pr.writeCsv(pr_output_file)
-
-def main_dfs_test():
-
-	dfs_input_name 			= 'pruned_filtered_output_of_all.csv'
-	dfs_input_file 			= os.path.join(input_directory, dfs_input_name)
-	sys.argv
-	arg = sys.argv[1]
-	num_of_paper_read = None if arg == 'all' else int(arg)
-	#num_of_paper_read = None
-	
-	dfshandler = DFSHandler(dfs_input_file, num = num_of_paper_read)
-	components = dfshandler.get_components()
-
-	l = len(components)
-	num_paper = 0
-	largest_size = 0
-
-	for sub in components:
-		num_paper += len(sub)
-		largest_size = max(len(sub), largest_size)
-
-	print "total number of data read is :", num_of_paper_read
-	print "number of unconnected cluster is :", l
-	print "total number of paper involved( can be paper outside the data set ) is :", num_paper
-	print "largest cluster size :", largest_size
-	dfs_output_name 			= 'components.p'
-	dfs_output_file 			= os.path.join(input_directory, dfs_output_name)	
-	dfshandler.write_to_file(dfs_output_file)
-
-	c = dfshandler.load_from_file(dfs_output_file)
 
 
 def test():
 
 	raw_data_filename = 'filtered_output_of_all.csv'
 	dfshandler = DFSHandler(raw_data_filename)
-	dfshandler.build_paper_graph()
-	dfshandler.write_paper_components()
-
-def test2():
-
-	prhandler = PageRankHandler()
-	prhandler.build_journal_graph()
-	prhandler.compute_journal_pageranks()
-	prhandler.write_journal_pageranks()
+	dfshandler.split_by_date()
 
 
-if __name__ == "__main__":
+class Data_Preprocess():
+
+    def build_dataset(self, start, end):
+		_time_splited_filename = '_date_splited_data.csv'
+		_directory = '/Users/elvin/Desktop/Project_iofiles/Output/Date_splited_data'
+		_output_filename = 'date_from_%d_to_%d.csv'%(start, end)
+		_output_file = os.path.join(_directory, _output_filename)
+		header = open('header.txt', 'rb').read().split('\n')
+		with open(_output_file, 'wb') as output_csvfile:
+
+			writer = csv.writer(output_csvfile, delimiter=',')
+			writer.writerow(header)
+			for _year in range(start, end+1):
+				_filename = str(_year)+_time_splited_filename
+				_file = os.path.join(_directory, _filename)
+				print _filename
+				with open(_file, 'rb') as input_txtfile:
+
+					dr = csv.DictReader(input_txtfile)
+					for line in dr:
+						writer.writerow([line[f] for f in header])
+
+
+    def write_paper_id(self, _idset_file, _rawinput_file):
+
+    	_id_tag='dokid'
+        print 'writing id set to a txt file'
+        N = 0
+        with open(_idset_file, 'wb') as output_txtfile:
+            with open(_rawinput_file, 'rb') as input_csvfile:
+                _dr = csv.DictReader(input_csvfile)
+                for data in _dr:
+                    N += 1
+                    if not N%100000:
+                		print N
+                    _id = eval(data[_id_tag])[0]
+                    output_txtfile.write(_id + '\n')
+            output_txtfile.close()
+
+    def prune_dataset(self, _idset_file, _pruned_file, _rawinput_file):
+        '''
+        prune all the refs paper which are not in the paper set
+        '''
+        _id_tag='dokid'
+        _ref_tag='refunifids' 
+        _idset = set(open(_idset_file, 'rb').read().split('\n'))
+
+        print "start pruning data"
+        with open(_pruned_file, 'wb') as output_txtfile:
+            with open(_rawinput_file, 'rb') as input_csvfile:
+                _dr = csv.DictReader(input_csvfile)
+                N = 0
+                for data in _dr:
+                    N += 1
+                    if not N%100000:
+                        print N
+                    _id = eval(data[_id_tag])[0]
+                    _adjset = eval(data[_ref_tag])
+                    _new_adjset = [x for x in _adjset if x in _idset]
+                    if not len(_new_adjset):
+                        continue
+                    line = _id + '\t' + '|'.join(_new_adjset) + '\n'
+                    output_txtfile.write(line)
+            output_txtfile.close()
+
+
+    def write_paper_journal(self, _id_jounal_file, _rawinput_file):
+        '''
+        write id and the journal it belongs to a txt file
+        '''
+        _id_tag='dokid'
+        _ref_tag='refunifids'
+        _journal_tag = 'jabbrev'
+        with open(_id_jounal_file, 'wb') as output_txtfile:
+            with open(_rawinput_file, 'rb') as input_csvfile:
+            	n = 0
+                _dr = csv.DictReader(input_csvfile)
+                for data in _dr:
+                    n += 1
+                    if not n%100000:
+                		print n
+                    _id = eval(data[_id_tag])[0]
+                    _journal = eval(data[_journal_tag])[0]
+                    output_txtfile.write(str(_id) + '\t' + _journal + '\n')
+            output_txtfile.close()
+    
+    def merge_journal(self, _id_jounal_file, _journal_relation_file, _pruned_file):
+        '''
+        merge papers into journals and keep their relation
+        '''
+        print "building journal dict"
+        _id_journal_dict = {}
+        with open(_id_jounal_file, 'rb') as input_txtfile:
+            for data in input_txtfile:
+                data = data.strip().split('\t')
+                _id = data[0]
+                _journal = data[1]
+                _id_journal_dict[_id] = _journal
+
+        print "merging journal"
+        with open(_journal_relation_file, 'wb') as output_txtfile:
+            with open(_pruned_file, 'rb') as input_txtfile:
+                for data in input_txtfile:
+                    data = data.strip().split('\t')
+                    _id = data[0]
+                    _refs = data[1].split('|')
+                    _id_journal = _id_journal_dict[_id]
+                    _refs_jounal = list(set([_id_journal_dict[ref] for ref in _refs if ref in _id_journal_dict]))
+                    line = _id_journal + '\t' + '|'.join(_refs_jounal) + '\n'
+                    output_txtfile.write(line)
+            output_txtfile.close()
+
 	
 
-	test2()
+
+
+def test_trustrank():
+
+	trhandler = TrustRankHandler()
+#	trhandler.select_seed()
+	trhandler.trust_rank()
+
+def test_preprocess():
+	start = 2011
+	end = 2013
+	dp = Data_Preprocess()
+	#dp.build_dataset(start, end)
+	_idset_filename = 'idset_from_%d_to_%d.txt'%(start, end)
+	_intermediate_directory = '/Users/elvin/Desktop/Project_iofiles/Intermediate'
+	_idset_file = os.path.join(_intermediate_directory, _idset_filename)
+
+
+	_rawinput_filename = 'date_from_%d_to_%d.csv'%(start, end)
+	_output_directory = '/Users/elvin/Desktop/Project_iofiles/Output'
+
+	_rawinput_file = os.path.join(_output_directory, _rawinput_filename)
+
+	_pruned_filename = 'pruned_date_from_%d_to_%d.csv'%(start, end)
+	_pruned_file = os.path.join(_intermediate_directory, _pruned_filename)
+
+	#dp.write_paper_id(_idset_file, _rawinput_file)
+	#dp.prune_dataset(_idset_file, _pruned_file, _rawinput_file)
+
+	_id_jounal_file = 'id_journal_from_%d_to_%d.csv'%(start, end)
+	_intermediate_directory = '/Users/elvin/Desktop/Project_iofiles/Intermediate'
+	_idset_file = os.path.join(_intermediate_directory, _id_jounal_file)
+
+	_journal_relation_filename = 'journal_relation_from_%d_to_%d.csv'%(start, end)
+	_journal_relation_file = os.path.join(_intermediate_directory, _id_jounal_file)
+
+	#dp.write_paper_journal(_idset_file, _rawinput_file)
+	dp.merge_journal(_idset_file, _journal_relation_file, _pruned_file)
+	
+if __name__ == "__main__":
+
+	test_trustrank()
+
+
+
+
+
+
+
+
+
+
+
+'''
+
+'''
     
