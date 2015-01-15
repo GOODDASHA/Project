@@ -6,7 +6,7 @@ import os
 
 
 class DFSHandler():
-    def __init__(self, filename, 
+    def __init__(self, 
                 id_tag='dokid', 
                 ref_tag='refunifids', 
                 journal_tag = 'jabbrev',
@@ -24,7 +24,7 @@ class DFSHandler():
         Constructor:initialize the object
         '''
         # Attributes of the data file
-        self._filename = filename
+        #self._filename = filename
         self._maxmum = num
 
         # tags
@@ -70,7 +70,6 @@ class DFSHandler():
         self._journal_relation_file = os.path.join(self._other_directory, self._journal_relation_filename)
 
         self._header = [h.strip() for h in open(self._header_file, 'rb')]
-        print self._header
     def split_by_date(self):
         '''
         split the data w.r.t. dates and write to separate files every two years 
@@ -151,7 +150,7 @@ class DFSHandler():
                     output_txtfile.write(str(_id) + '\t' + _journal + '\n')
             output_txtfile.close()
     
-    def merge_journal(self):
+    def merge_pruned_journal(self):
         '''
         merge papers into journals and keep their relation
         '''
@@ -177,6 +176,42 @@ class DFSHandler():
                     output_txtfile.write(line)
             output_txtfile.close()
 
+    def merge_raw_journal(self):
+        '''
+        merge papers into journals and keep their relation
+        '''
+        print "building journal dict"
+        _id_journal_dict = {}
+        n = 0
+        with open(self._id_jounal_file, 'rb') as input_txtfile:
+
+            for data in input_txtfile:
+                n += 1
+                if not n%100000:
+                    print n
+                data = data.strip().split('\t')
+                _id = data[0]
+                _journal = data[1]
+                _id_journal_dict[_id] = _journal
+        n = 0
+        print "merging journal"
+        with open('raw_journal_relation.txt', 'wb') as output_txtfile:
+            with open(self._rawinput_file, 'rb') as input_csvfile:
+                dr = csv.DictReader(input_csvfile)
+                for data in dr:
+                    n += 1
+                    if not n%100000:
+                        print n
+                    _id = eval(data[self._id_tag])[0]
+                    _refs = eval(data[self._ref_tag])
+                    _id_journal = _id_journal_dict[_id]
+
+                    _refs_jounal = list([_id_journal_dict[ref] for ref in _refs if ref in _id_journal_dict])
+                    line = _id_journal + '\t' + '|'.join(_refs_jounal) + '\t'
+                    line += '|'.join([data[x] for x in self._header]) + '\n'
+                    output_txtfile.write(line)
+            output_txtfile.close()
+
     
 
     def build_journal_graph(self):
@@ -189,18 +224,84 @@ class DFSHandler():
         with open(self._journal_relation_file, 'rb') as input_txtfile:
             for data in input_txtfile:
                 n += 1
-                if n == self._maxmum:
+                if n == 10000:
                     break
                 if n % 100000 == 0:
                     print "%d data read"%n
                 data = data.strip().split('\t')
                 _id_journal = data[0]
+
+
                 _ref_journal = data[1].split('|')
+                if 'SCIENCE' != _id_journal or 'SCIENCE' not in _ref_journal:
+                    continue
                 for _other_id in _ref_journal:
                     self._journal_undirected_graph.add_edge(_id_journal, _other_id)
 
         self._journal_components = sorted(nx.connected_components(self._journal_undirected_graph), key = len, reverse=True)
 
+        print len(self._journal_undirected_graph)
+        self.draw()
+
+
+    def draw(self):
+
+
+
+
+#        print self._journal_undirected_graph['SCIENCE'].keys()
+        #print self._journal_undirected_graph.edges()
+        G = nx.MultiDiGraph()
+#        G.add_edges_from(self._journal_undirected_graph.edges())
+        G.add_edges_from([('SCIENCE', 'SCIENCE')])
+        '''
+        n=1000
+        m=2
+        G=nx.generators.barabasi_albert_graph(n,m)
+        # find node with largest degree
+        node_and_degree=G.degree()
+        (largest_hub,degree)=sorted(node_and_degree.items(),key=itemgetter(1))[-1]
+        # Create ego graph of main hub
+        hub_ego=nx.ego_graph(G,largest_hub)
+        # Draw graph
+        pos=nx.spring_layout(hub_ego)
+        nx.draw(hub_ego,pos,node_color='b',node_size=50,with_labels=False)
+    # Draw ego as large and red
+        nx.draw_networkx_nodes(hub_ego,pos,nodelist=[largest_hub],node_size=300,node_color='r')
+        plt.savefig('ego_graph.png')
+        plt.show()
+        '''
+        '''
+        nx.draw_networkx_nodes(G,
+                               nodelist=['SCIENCE'],
+                               node_color='r',
+                               node_size=500,
+                               alpha=0.8)
+
+        nx.draw_networkx_nodes(G,
+                               nodelist=self._journal_undirected_graph['SCIENCE'],
+                               node_color='b',
+                               node_size=300,
+                               alpha=0.8)
+        '''
+
+#        nx.draw_networkx_edges(G,pos,width=1.0,alpha=0.5)
+#        nx.draw_networkx_edges(G,
+#                               edgelist=self._journal_undirected_graph.edges(),
+#                               width=8,alpha=0.5,edge_color='r')
+
+        pos = nx.spring_layout(G)
+        nx.draw_networkx_nodes(G, pos, cmap=plt.get_cmap('jet'),node_size=20)
+        nx.draw_networkx_edges(G, pos, edgelist=G.edges(), edge_color='r', arrows=False)
+
+        labels={}
+        
+#        labels[2]=r'$c$'
+#        nx.draw_networkx_labels(G,pos,labels,font_size=16)
+
+        plt.axis('off')
+        plt.savefig("labels_and_colors.png") # save as png
+        plt.show() # display
 
     def write_journal_components(self):
         '''

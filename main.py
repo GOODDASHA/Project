@@ -4,15 +4,12 @@ from Parser.datasetparser import DataSetParser
 import os
 import csv
 import sys
+import gc
 
 
 
 
-def test():
 
-	raw_data_filename = 'filtered_output_of_all.csv'
-	dfshandler = DFSHandler(raw_data_filename)
-	dfshandler.split_by_date()
 
 
 class Data_Preprocess():
@@ -137,41 +134,66 @@ def test_trustrank():
 #	trhandler.select_seed()
 	trhandler.trust_rank()
 
-def test_preprocess():
-	start = 2011
-	end = 2013
-	dp = Data_Preprocess()
-	#dp.build_dataset(start, end)
-	_idset_filename = 'idset_from_%d_to_%d.txt'%(start, end)
-	_intermediate_directory = '/Users/elvin/Desktop/Project_iofiles/Intermediate'
-	_idset_file = os.path.join(_intermediate_directory, _idset_filename)
+def preprocess(start, end):
+    dp = Data_Preprocess()
+    #dp.build_dataset(start, end)
+    
+    _idset_filename = 'idset_from_%d_to_%d.txt'%(start, end)
+    _intermediate_directory = '/Users/elvin/Desktop/Project_iofiles/Intermediate'
+    _idset_file = os.path.join(_intermediate_directory, _idset_filename)
 
 
-	_rawinput_filename = 'date_from_%d_to_%d.csv'%(start, end)
-	_output_directory = '/Users/elvin/Desktop/Project_iofiles/Output'
+    _rawinput_filename = 'date_from_%d_to_%d.csv'%(start, end)
+    _output_directory = '/Users/elvin/Desktop/Project_iofiles/Output/Date_splited_data'
 
-	_rawinput_file = os.path.join(_output_directory, _rawinput_filename)
+    _rawinput_file = os.path.join(_output_directory, _rawinput_filename)
 
-	_pruned_filename = 'pruned_date_from_%d_to_%d.csv'%(start, end)
-	_pruned_file = os.path.join(_intermediate_directory, _pruned_filename)
+    _pruned_filename = 'pruned_date_from_%d_to_%d.csv'%(start, end)
+    _pruned_file = os.path.join(_intermediate_directory, _pruned_filename)
 
-	#dp.write_paper_id(_idset_file, _rawinput_file)
-	#dp.prune_dataset(_idset_file, _pruned_file, _rawinput_file)
+#    dp.write_paper_id(_idset_file, _rawinput_file)
+#    dp.prune_dataset(_idset_file, _pruned_file, _rawinput_file)
 
-	_id_jounal_file = 'id_journal_from_%d_to_%d.csv'%(start, end)
-	_intermediate_directory = '/Users/elvin/Desktop/Project_iofiles/Intermediate'
-	_idset_file = os.path.join(_intermediate_directory, _id_jounal_file)
+    _id_jounal_file = 'id_journal_from_%d_to_%d.csv'%(start, end)
+    _intermediate_directory = '/Users/elvin/Desktop/Project_iofiles/Intermediate'
+    _idset_file = os.path.join(_intermediate_directory, _id_jounal_file)
 
-	_journal_relation_filename = 'journal_relation_from_%d_to_%d.csv'%(start, end)
-	_journal_relation_file = os.path.join(_intermediate_directory, _id_jounal_file)
+    _journal_relation_filename = 'journal_relation_from_%d_to_%d.csv'%(start, end)
+    _journal_relation_file = os.path.join(_intermediate_directory, _journal_relation_filename)
 
-	#dp.write_paper_journal(_idset_file, _rawinput_file)
-	dp.merge_journal(_idset_file, _journal_relation_file, _pruned_file)
-	
+    dp.write_paper_journal(_idset_file, _rawinput_file)
+    dp.merge_journal(_idset_file, _journal_relation_file, _pruned_file)
+
+
+
+def split():
+
+    raw_data_filename = 'filtered_output_of_all.csv'
+    dfshandler = DFSHandler(raw_data_filename)
+    dfshandler.build_journal_graph()
+
+def dfs():
+    dfshandler = DFSHandler()
+    dfshandler.build_journal_graph()
+
 if __name__ == "__main__":
+    
+    dfs()
+    '''
+    print "Spliting data"
+    #dfshandler = DFSHandler()
+    #dfshandler.split_by_date()
+    for year in range(2008, 2011):
+        print "Preprocessing data"
+    	#preprocess(year, year+2)
 
-	test_trustrank()
 
+    print "computing trust_rank"
+    for year in range(2010, 2011):
+        print 'year from %d to %d'%(year, year+2)
+        trhandler = TrustRankHandler(year, year+2)
+        trhandler.trust_rank()
+    '''
 
 
 

@@ -1,0 +1,10 @@
+dokid
+editions
+sortdate
+asca
+doctype
+issn
+authors
+jabbrev
+publisher
+refunifids

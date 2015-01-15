@@ -2,7 +2,7 @@ import csv
 import os
 import networkx as nx
 import operator
-
+import gc
 
 class PageRankHandler():
     def __init__(self, 
@@ -74,12 +74,14 @@ class PageRankHandler():
 class TrustRankHandler(PageRankHandler):
 
     def __init__(self,
-                input_filename = 'journal_relation_from_2011_to_2013.csv',
-                output_filename = 'journal_trustranks_from_2011_to_2013.txt',
-                bad_paper_filename = 'Bad_paper_from_2011_to_2013.txt',
-                intermediate_filename = 'seed_desirability_from_2011_to_2013.txt',
-                directory = '/Users/elvin/Desktop/Project_iofiles'):
+                start, 
+                end):
 
+        input_filename = 'journal_relation_from_%d_to_%d.csv'%(start, end)
+        output_filename = 'journal_trustranks_from_%d_to_%d.txt'%(start, end)
+        bad_paper_filename = 'Bad_paper_from_%d_to_%d.txt'%(start, end)
+        intermediate_filename = 'seed_desirability.txt'
+        directory = '/Users/elvin/Desktop/Project_iofiles'
         PageRankHandler.__init__(self,
                                 input_filename = input_filename,
                                 output_filename = output_filename,
@@ -120,9 +122,14 @@ class TrustRankHandler(PageRankHandler):
 
     def trust_rank(self, L=1000, alpha=0.9):
         _journal_dict = self.initialize_vector(1000)
+        gc.collect()
         _graph = self.build_graph()
         _sorted_pagerank, _max = self.compute_pagerank(_graph, 0.9, _personalization=_journal_dict)
+        gc.collect()
+
         self.writing_pagerank(self._output_file, _sorted_pagerank, _max)
+        gc.collect()
+
 
 
 

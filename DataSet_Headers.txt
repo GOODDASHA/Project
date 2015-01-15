@@ -1,0 +1,24 @@
+journal name
+Year
+edition
+referenced num in the past 2 years
+published num in the past 6 months
+published num in last year
+published num in the year before last year
+num authors/num papers
+
+num of self citation in the past 6 months
+
+
+sum of page rank for papers in the past two years
+TrustRank in the past two years
+PageRank
+2007 bad/good
+2008 bad/good
+2009 bad/good
+2010 bad/good
+2011 bad/good
+2012 bad/good
+2013 bad/good
+
+
